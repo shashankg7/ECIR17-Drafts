@@ -1,1 +1,1 @@
-# WWW17-TexFiles
+# VCS for ECIR17 Drafts
