@@ -34,7 +34,7 @@
 \mainmatter  % start of an individual contribution
 
 % first the title is needed
-\title{Using Learning to Rank to enhance Document Classification}
+\title{Enhancing Classification perforamance on ACM papers by linking categories to Wikipedia articles}
 
 % a short form should be given in case it is too long for the running head
 \titlerunning{}
@@ -66,323 +66,92 @@
 % "llncs.dem" accompanies the document class "llncs.cls".
 %
 
-\toctitle{Lecture Notes in Computer Science}
+\toctitle{Enhancing Classification perforamance on ACM papers by linking categories to Wikipedia articles}
 \tocauthor{Authors' Instructions}
 \maketitle
 
 
 \begin{abstract}
-We propose a Learning to Rank framework for enhancing categorization of research articles by combining semantic representation of research articles and Wikipedia page of the categories. We empherically show that adding semantic information of the wikipedia articles  enhances the classification performance of the articles as compared to state-of-the-art document classification methods.
-
-\keywords{We would like to encourage you to list your keywords within
-the abstract section}
+We propose a novel method for enhancing classification performance of ACM papers from citation network dataset by linking the categories to Wikipedia articles. We use recent Deep Learning inspired representation learning methods followed by Learning to Rank method. We empherically demonstrate that our method which uses recent representation learning methods for document represention outperforms state-of-the-art method for text classification.
+\keywords{Text classification}
 \end{abstract}
-
-
 \section{Introduction}
+Finding categories of ACM papers automatically from its abstract is a relatively tough problem due to limited context and content is presented at a relatively higher level of abstraction than the rest of the paper. This problem comes under standard text classification problem. Traditional methods for text classification works by representing document as human curated features like tf-idf features and than applying a linear classifier on top of it. Due to high dimensionality of the tf-idf features, use of dimensioanlity reduction techniques like LSA, LDA followed by a classifier is also popular. One limitation of these dimensionality reduction methods is that they are unable to capture semantic meaning of words and phrases in the document.
+ 
+Recent advancements in Deep Learning (Ref. Bengio) have proven to be more efficient than traditional Deep learning techniques on supervised classification task in Computer Vision and Speech Processing (Ref. Representation Learning for speech and vision). In NLP domain also these Deep Learning inspired representation learning methods like: Word2vec (Ref. Mikolov) and Paragraph2vec have proven to be more effecitve than more traditional text classification tasks (Ref. Mikolov doc2vec). One limitation with these methods is that they don't use any kind of external knowledge base in their model. We overcome this limitation by using Wikipedia as external Knowledge base and linking categories to their correspoding Wikipedia pages and combining both of them to build a classification model. We show that our method outperforms recent State-of-the-art method for text classification by {\bf 3\%} on ACM papers from citation network dataset (Ref.)
 
-You are strongly encouraged to use \LaTeXe{} for the
-preparation of your camera-ready manuscript together with the
-corresponding Springer class file \verb+llncs.cls+. Only if you use
-\LaTeXe{} can hyperlinks be generated in the online version
-of your manuscript.
+\section{Approach}
 
-The \LaTeX{} source of this instruction file for \LaTeX{} users may be
-used as a template. This is
-located in the ``authors'' subdirectory in
-\url{ftp://ftp.springer.de/pub/tex/latex/llncs/latex2e/instruct/} and
-entitled \texttt{typeinst.tex}. There is a separate package for Word 
-users. Kindly send the final and checked source
-and PDF files of your paper to the Contact Volume Editor. This is
-usually one of the organizers of the conference. You should make sure
-that the \LaTeX{} and the PDF files are identical and correct and that
-only one version of your paper is sent. It is not possible to update
-files at a later stage. Please note that we do not need the printed
-paper.
+In this section we briefly describe about representation learning methods and learning to rank method. we describe two recently popular representation learning methods : Word2vec and Paragraph2vec for representation of document in semantic space. 
 
-We would like to draw your attention to the fact that it is not possible
-to modify a paper in any way, once it has been published. This applies
-to both the printed book and the online version of the publication.
-Every detail, including the order of the names of the authors, should
-be checked before the paper is sent to the Volume Editors.
+\subsection{Word2vec}
+Given a word sequence (w1,w2,...,wn), the objective of word2vec with skip-gram model is to maximize the following log probability:
 
-\subsection{Checking the PDF File}
 
-Kindly assure that the Contact Volume Editor is given the name and email
-address of the contact author for your paper. The Contact Volume Editor
-uses these details to compile a list for our production department at
-SPS in India. Once the files have been worked upon, SPS sends a copy of
-the final pdf of each paper to its contact author. The contact author is
-asked to check through the final pdf to make sure that no errors have
-crept in during the transfer or preparation of the files. This should
-not be seen as an opportunity to update or copyedit the papers, which is
-not possible due to time constraints. Only errors introduced during the
-preparation of the files will be corrected.
+$$ \frac{1}{N} \sum_{n=1}^{N} \sum_{j=-c}^{c} log p(w_^{t+j} | w_t) $$
+In the skipgram model $p(w_(t+j)|w_t)$ is defined as :
 
-This round of checking takes place about two weeks after the files have
-been sent to the Editorial by the Contact Volume Editor, i.e., roughly
-seven weeks before the start of the conference for conference
-proceedings, or seven weeks before the volume leaves the printer's, for
-post-proceedings. If SPS does not receive a reply from a particular
-contact author, within the timeframe given, then it is presumed that the
-author has found no errors in the paper. The tight publication schedule
-of LNCS does not allow SPS to send reminders or search for alternative
-email addresses on the Internet.
+$$ p(w_O | w_I) = \frac{exp(v_^'wo)}{\sum_{w=1}^{W} exp(v_w^^T w_wI)} $$ 
+where $v_W$ and $v_W^'$ are input and output representation of words. Word representations are learned during optimization of this objective function.
 
-In some cases, it is the Contact Volume Editor that checks all the final
-pdfs. In such cases, the authors are not involved in the checking phase.
+\subsection{Paragraph2vec}
+Let (w1, w2, ...., wn) be the words in a document, the objective of the paragraph2vec model is to maximize the average log probability defined as follows:
 
-\subsection{Additional Information Required by the Volume Editor}
+$$ \frac{1}{N} \sum_{n=1}^{N} log p(w_n | w_1,..., w_{n-1}, s, t) $$
+where s is the size of context window and t is the title. To generate the paragraph vector, the model simply treats the title as a special word and generates the representation of title, which can be used as representation for the document.
 
-If you have more than one surname, please make sure that the Volume Editor
-knows how you are to be listed in the author index.
+\subsection{Learning to Rank}
+Learning to rank can be defined as learning a function H over set of queries (q1, q2, ..., qm), set of documents (d1, d2,...., dn) with labels R, which can be binary or real valued depending upon the task. In our case R is the set ${0,1}$ which represents relevant or non-relevant. The aim of h then is to rank relevant document higher than irrelevant documents with respect to the query. Formally, h can be defined as (Ref LTR MSR) :
 
-\subsection{Copyright Forms}
+$$ h(w, \psi(q, d)) \rightarrow R $$ 
+where $\psi$ is a function which gives a combined representation of query and document. Learning to rank can be broadly divided into 3 categories:
 
-The copyright form may be downloaded from the ``For Authors"
-(Information for LNCS Authors) section of the LNCS Website:
-\texttt{www.springer.com/lncs}. Please send your signed copyright form
-to the Contact Volume Editor, either as a scanned pdf or by fax or by
-courier. One author may sign on behalf of all of the other authors of a
-particular paper. Digital signatures are acceptable.
+\subsubsection{Pointwise Approach} 
+It takes triplets (q, D, R) as input and trains a classification/regression model depending on type of R
 
-\section{Paper Preparation}
+\subsubsection{Pairwise Approach}
+This model takes (q, D) pairs as input and ranks correct pair higher than incorrect pair (generated by random sampling). 
 
-Springer provides you with a complete integrated \LaTeX{} document class
-(\texttt{llncs.cls}) for multi-author books such as those in the LNCS
-series. Papers not complying with the LNCS style will be reformatted.
-This can lead to an increase in the overall number of pages. We would
-therefore urge you not to squash your paper.
+\subsubsection{Listwise Approach}
+It treats a query with its list of candidates as single learning instance, thus captures considerably more information about the ground truth ordering
 
-Please always cancel any superfluous definitions that are
-not actually used in your text. If you do not, these may conflict with
-the definitions of the macro package, causing changes in the structure
-of the text and leading to numerous mistakes in the proofs.
+\section{Experiments}
+\subsection{Our Approach}
+We use pointiwse approach, since its easier to train and requires less number of data points than pairwise and listwise approaches. (Ref SIGIR LTR paper).
 
-If you wonder what \LaTeX{} is and where it can be obtained, see the
-``\textit{LaTeX project site}'' (\url{http://www.latex-project.org})
-and especially the webpage ``\textit{How to get it}''
-(\url{http://www.latex-project.org/ftp.html}) respectively.
+For each paper $d_p$ and its ACM categories $l_p$, we find the Wikipedia page with title matching the category $d_^+w$ (positive sample). For each paper $d_p$ we also sample a negative category and its corresponding Wikipedia article $d_^-W$. We define a function g which representation of the document by embedding it using word2vec or paragraph2vec in a d-dimensional space.
 
-When you use \LaTeX\ together with our document class file,
-\texttt{llncs.cls},
-your text is typeset automatically in Computer Modern Roman (CM) fonts.
-Please do
-\emph{not} change the preset fonts. If you have to use fonts other
-than the preset fonts, kindly submit these with your files.
+We follow Bag-of-Words approach for finding representation of the document when using word2vec for representation of the document (average of the word vectors). For Out oF Vocabulary words we generate a uniformly randomly sampled vector and replace the embedding of the work with this vector. For paragraph2vec, we find its representation by using inference method described in the paper (Ref. Mikolov). We define $\psi$ in our case as:
 
-Please use the commands \verb+\label+ and \verb+\ref+ for
-cross-references and the commands \verb+\bibitem+ and \verb+\cite+ for
-references to the bibliography, to enable us to create hyperlinks at
-these places.
+$$ \psi (d_p, d_w) = [R(d_p) ; R(d_W)] $$
+Where R(d) is the representation of the document in d-dimensional space. For function h, we select Logistic Regression with implementation available in sklearn.
 
-For preparing your figures electronically and integrating them into
-your source file we recommend using the standard \LaTeX{} \verb+graphics+ or
-\verb+graphicx+ package. These provide the \verb+\includegraphics+ command.
-In general, please refrain from using the \verb+\special+ command.
+\subsection{Dataset}
+We use citation network dataset (Ref.) which contains 247543 papers with each article categorised into one of 24 ACM categories. Since for our method we are assuming that labels of the paper have some Wikipedia article with same title, we select only those categories which have some Wikipedia page with same title. We use Wikipedia dump of Oct. 24 (Footnote). We found out that out of 24 ACM categories, 23 categories have a corresponding Wikipedia page. 
 
-Remember to submit any further style files and
-fonts you have used together with your source files.
+That leaves us with 236565 articles. We randomly split these articles into 80\% training instances and 20\% testing instances. So training data contains 189290 papers and testing data contains 47275 papers.
 
-\subsubsection{Headings.}
+\begin{center}
+\begin{tabular}{ |c|c|c|c| } 
+\hline
+Method & Accuracy \\
+\hline
+Tf-Idf + SVM Baseline & 58.8281\% \\ 
+\hline
+CNN baseline & 69.07827\% \\ 
+\hline
+Our model & 71.2512\% \\
+\hline
+\end{tabular}
+\end{center}
 
-Headings should be capitalized
-(i.e., nouns, verbs, and all other words
-except articles, prepositions, and conjunctions should be set with an
-initial capital) and should,
-with the exception of the title, be aligned to the left.
-Words joined by a hyphen are subject to a special rule. If the first
-word can stand alone, the second word should be capitalized.
+For benchmarking we select recent state-of-the-art in word embedding based text classification method (REf. CNN for text clas). Since this baseline uses CNN which requires fixed length input sequence, we convert the papers into fixed length documents by padding them till average sequence length in training corpus. We use the code made available by authors (footnote) and ran it on our dataset with the best settings reported. 
 
-Here are some examples of headings: ``Criteria to Disprove
-Context-Freeness of Collage Language", ``On Correcting the Intrusion of
-Tracing Non-deterministic Programs by Software", ``A User-Friendly and
-Extendable Data Distribution System", ``Multi-flip Networks:
-Parallelizing GenSAT", ``Self-determinations of Man".
+We present the result of our method on Table 1. For evaluating performance we use accuracy as measure. It is clear that our method outperforms the baseline in accuracy by {\bf 2.17 \%}
 
-\subsubsection{Lemmas, Propositions, and Theorems.}
+We also compare our method with BoW and doc2vec baselines without any external information. Results are presented in table 2.
 
-The numbers accorded to lemmas, propositions, and theorems, etc. should
-appear in consecutive order, starting with Lemma 1, and not, for
-example, with Lemma 11.
 
-\subsection{Figures}
-
-For \LaTeX\ users, we recommend using the \emph{graphics} or \emph{graphicx}
-package and the \verb+\includegraphics+ command.
-
-Please check that the lines in line drawings are not
-interrupted and are of a constant width. Grids and details within the
-figures must be clearly legible and may not be written one on top of
-the other. Line drawings should have a resolution of at least 800 dpi
-(preferably 1200 dpi). The lettering in figures should have a height of
-2~mm (10-point type). Figures should be numbered and should have a
-caption which should always be positioned \emph{under} the figures, in
-contrast to the caption belonging to a table, which should always appear
-\emph{above} the table; this is simply achieved as matter of sequence in
-your source.
-
-Please center the figures or your tabular material by using the \verb+\centering+
-declaration. Short captions are centered by default between the margins
-and typeset in 9-point type (Fig.~\ref{fig:example} shows an example).
-The distance between text and figure is preset to be about 8~mm, the
-distance between figure and caption about 6~mm.
-
-To ensure that the reproduction of your illustrations is of a reasonable
-quality, we advise against the use of shading. The contrast should be as
-pronounced as possible.
-
-If screenshots are necessary, please make sure that you are happy with
-the print quality before you send the files.
-\begin{figure}
-\centering
-\includegraphics[height=6.2cm]{eijkel2}
-\caption{One kernel at $x_s$ (\emph{dotted kernel}) or two kernels at
-$x_i$ and $x_j$ (\textit{left and right}) lead to the same summed estimate
-at $x_s$. This shows a figure consisting of different types of
-lines. Elements of the figure described in the caption should be set in
-italics, in parentheses, as shown in this sample caption.}
-\label{fig:example}
-\end{figure}
-
-Please define figures (and tables) as floating objects. Please avoid
-using optional location parameters like ``\verb+[h]+" for ``here".
-
-\paragraph{Remark 1.}
-
-In the printed volumes, illustrations are generally black and white
-(halftones), and only in exceptional cases, and if the author is
-prepared to cover the extra cost for color reproduction, are colored
-pictures accepted. Colored pictures are welcome in the electronic
-version free of charge. If you send colored figures that are to be
-printed in black and white, please make sure that they really are
-legible in black and white. Some colors as well as the contrast of
-converted colors show up very poorly when printed in black and white.
-
-\subsection{Formulas}
-
-Displayed equations or formulas are centered and set on a separate
-line (with an extra line or halfline space above and below). Displayed
-expressions should be numbered for reference. The numbers should be
-consecutive within each section or within the contribution,
-with numbers enclosed in parentheses and set on the right margin --
-which is the default if you use the \emph{equation} environment, e.g.,
-\begin{equation}
-  \psi (u) = \int_{o}^{T} \left[\frac{1}{2}
-  \left(\Lambda_{o}^{-1} u,u\right) + N^{\ast} (-u)\right] dt \;  .
-\end{equation}
-
-Equations should be punctuated in the same way as ordinary
-text but with a small space before the end punctuation mark.
-
-\subsection{Footnotes}
-
-The superscript numeral used to refer to a footnote appears in the text
-either directly after the word to be discussed or -- in relation to a
-phrase or a sentence -- following the punctuation sign (comma,
-semicolon, or period). Footnotes should appear at the bottom of
-the
-normal text area, with a line of about 2~cm set
-immediately above them.\footnote{The footnote numeral is set flush left
-and the text follows with the usual word spacing.}
-
-\subsection{Program Code}
-
-Program listings or program commands in the text are normally set in
-typewriter font, e.g., CMTT10 or Courier.
-
-\medskip
-
-\noindent
-{\it Example of a Computer Program}
-\begin{verbatim}
-program Inflation (Output)
-  {Assuming annual inflation rates of 7%, 8%, and 10%,...
-   years};
-   const
-     MaxYears = 10;
-   var
-     Year: 0..MaxYears;
-     Factor1, Factor2, Factor3: Real;
-   begin
-     Year := 0;
-     Factor1 := 1.0; Factor2 := 1.0; Factor3 := 1.0;
-     WriteLn('Year  7% 8% 10%'); WriteLn;
-     repeat
-       Year := Year + 1;
-       Factor1 := Factor1 * 1.07;
-       Factor2 := Factor2 * 1.08;
-       Factor3 := Factor3 * 1.10;
-       WriteLn(Year:5,Factor1:7:3,Factor2:7:3,Factor3:7:3)
-     until Year = MaxYears
-end.
-\end{verbatim}
-%
-\noindent
-{\small (Example from Jensen K., Wirth N. (1991) Pascal user manual and
-report. Springer, New York)}
-
-\subsection{Citations}
-
-For citations in the text please use
-square brackets and consecutive numbers: \cite{jour}, \cite{lncschap},
-\cite{proceeding1} -- provided automatically
-by \LaTeX 's \verb|\cite| \dots\verb|\bibitem| mechanism.
-
-\subsection{Page Numbering and Running Heads}
-
-There is no need to include page numbers. If your paper title is too
-long to serve as a running head, it will be shortened. Your suggestion
-as to how to shorten it would be most welcome.
-
-\section{LNCS Online}
-
-The online version of the volume will be available in LNCS Online.
-Members of institutes subscribing to the Lecture Notes in Computer
-Science series have access to all the pdfs of all the online
-publications. Non-subscribers can only read as far as the abstracts. If
-they try to go beyond this point, they are automatically asked, whether
-they would like to order the pdf, and are given instructions as to how
-to do so.
-
-Please note that, if your email address is given in your paper,
-it will also be included in the meta data of the online version.
-
-\section{BibTeX Entries}
-
-The correct BibTeX entries for the Lecture Notes in Computer Science
-volumes can be found at the following Website shortly after the
-publication of the book:
-\url{http://www.informatik.uni-trier.de/~ley/db/journals/lncs.html}
-
-\subsubsection*{Acknowledgments.} The heading should be treated as a
-subsubsection heading and should not be assigned a number.
-
-\section{The References Section}\label{references}
-
-In order to permit cross referencing within LNCS-Online, and eventually
-between different publishers and their online databases, LNCS will,
-from now on, be standardizing the format of the references. This new
-feature will increase the visibility of publications and facilitate
-academic research considerably. Please base your references on the
-examples below. References that don't adhere to this style will be
-reformatted by Springer. You should therefore check your references
-thoroughly when you receive the final pdf of your paper.
-The reference section must be complete. You may not omit references.
-Instructions as to where to find a fuller version of the references are
-not permissible.
-
-We only accept references written using the latin alphabet. If the title
-of the book you are referring to is in Russian or Chinese, then please write
-(in Russian) or (in Chinese) at the end of the transcript or translation
-of the title.
-
-The following section shows a sample reference list with entries for
-journal articles \cite{jour}, an LNCS chapter \cite{lncschap}, a book
-\cite{book}, proceedings without editors \cite{proceeding1} and
-\cite{proceeding2}, as well as a URL \cite{url}.
-Please note that proceedings published in LNCS are not cited with their
-full titles, but with their acronyms!
 
 \begin{thebibliography}{4}
 
