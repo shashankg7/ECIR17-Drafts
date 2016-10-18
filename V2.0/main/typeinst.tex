@@ -1,0 +1,199 @@
+
+%%%%%%%%%%%%%%%%%%%%%%% file typeinst.tex %%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% This is the LaTeX source for the instructions to authors using
+% the LaTeX document class 'llncs.cls' for contributions to
+% the Lecture Notes in Computer Sciences series.
+% http://www.springer.com/lncs       Springer Heidelberg 2006/05/04
+%
+% It may be used as a template for your own input - copy it
+% to a new file with a new name and use it as the basis
+% for your article.
+%
+% NB: the document class 'llncs' has its own and detailed documentation, see
+% ftp://ftp.springer.de/data/pubftp/pub/tex/latex/llncs/latex2e/llncsdoc.pdf
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\documentclass[runningheads,a4paper]{llncs}
+
+\usepackage{amssymb}
+\setcounter{tocdepth}{3}
+\usepackage{graphicx}
+
+\usepackage{url}
+\urldef{\mailsa}\path|{shashank.gupta, priya.radhakrishnan}@research.iiit.ac.in|
+\urldef{\mailsb}\path|{manish.gupta}@microsoft.com|
+\urldef{\mailsc}\path|{vv}@iiit.ac.in|    
+\newcommand{\keywords}[1]{\par\addvspace\baselineskip
+\noindent\keywordname\enspace\ignorespaces#1}
+
+\begin{document}
+
+\mainmatter  % start of an individual contribution
+
+% first the title is needed
+\title{Enhancing classification of Research papers to categories of Computer Science domain using Wikipedia articles }
+
+% a short form should be given in case it is too long for the running head
+\titlerunning{}
+
+% the name(s) of the author(s) follow(s) next
+%
+% NB: Chinese authors should write their first names(s) in front of
+% their surnames. This ensures that the names appear correctly in
+% the running heads and the author index.
+%
+%\author{Shashank Gupta\and Priya Radhakrishnan\and Manish Gupta\and Vasudeva Varma}
+%
+\authorrunning{Lecture Notes in Computer Science: Authors' Instructions}
+% (feature abused for this document to repeat the title also on left hand pages)
+
+% the affiliations are given next; don't give your e-mail address
+% unless you accept that it will be published
+%\institute{International Institute of Information Technology, 50034, Hyderabad, India\\
+%\mailsa\\
+%\mailsb\\
+%\mailsc\\}
+%
+% NB: a more complex sample for affiliations and the mapping to the
+% corresponding authors can be found in the file "llncs.dem"
+% (search for the string "\mainmatter" where a contribution starts).
+% "llncs.dem" accompanies the document class "llncs.cls".
+%
+
+\toctitle{Enhancing classification of Research papers to categories of Computer Science domain using Wikipedia articles }
+\tocauthor{Authors' Instructions}
+\maketitle
+
+
+\begin{abstract}
+We propose a novel method for enhancing classification performance of Research papers to Computer Science categories using Wikipedia articles of the categories. We use state-of-the-art representation learning methods for embedding documents followed by Learning to Rank method for classification. Given the abstracts of research papers from Citation network dataset our method outperforms the state-of-the-art by {\bf 3\%} accuracy. Our method is also faster to train as compared to state-of-the-art for text classification.
+\keywords{Text classification; Representation Learning; Learning to Rank}
+\end{abstract}
+\section{Introduction}
+Finding categories of research papers automatically from its abstract is a relatively tough problem due to limited context and content presented at a relatively higher level of abstraction than the rest of the paper. This problem comes under standard text classification problem. Traditional methods for text classification works by representing document as human curated features like tf-idf features and than applying a linear classifier like SVM on top of it. Due to high dimensionality of the tf-idf features, use of dimensioanlity reduction techniques like LSA, LDA followed by a classifier is also popular. One limitation of these dimensionality reduction methods is that they are unable to capture semantic meaning of words and phrases in the document.
+ 
+Recent advancements in Deep Learning (Ref. Bengio) have proven to be more efficient than traditional Deep learning techniques on supervised classification task in Computer Vision and Speech Processing (Ref. Representation Learning for speech and vision). In NLP domain also these Deep Learning inspired representation learning methods like: Word2vec (Ref. Mikolov) and Paragraph2vec have proven to be more effecitve than more traditional text classification tasks (Ref. Mikolov doc2vec). One limitation with these methods is that they don't use any kind of external knowledge base in their model. We overcome this limitation by using Wikipedia as external Knowledge base and linking categories to their correspoding Wikipedia pages and combining both of them to build a classification model. We show that our method outperforms recent State-of-the-art method for text classification by {\bf 3\%} on ACM papers from citation network dataset (Ref.)
+
+\section{Approach}
+
+In this section we briefly describe about representation learning methods and learning to rank method. we describe two recently popular representation learning methods : Word2vec and Paragraph2vec for representation of document in semantic space. 
+
+\subsection{Word2vec}
+Given a word sequence (w1,w2,...,wn), the objective of word2vec with skip-gram model is to maximize the following log probability:
+
+
+$$ \frac{1}{N} \sum_{n=1}^{N} \sum_{j=-c}^{c} log p(w_^{t+j} | w_t) $$
+In the skipgram model $p(w_(t+j)|w_t)$ is defined as :
+
+$$ p(w_O | w_I) = \frac{exp(v_^'wo)}{\sum_{w=1}^{W} exp(v_w^^T w_wI)} $$ 
+where $v_W$ and $v_W^'$ are input and output representation of words. Word representations are learned during optimization of this objective function.
+
+\subsection{Paragraph2vec}
+Let (w1, w2, ...., wn) be the words in a document, the objective of the paragraph2vec model is to maximize the average log probability defined as follows:
+
+$$ \frac{1}{N} \sum_{n=1}^{N} log p(w_n | w_1,..., w_{n-1}, s, t) $$
+where s is the size of context window and t is the title. To generate the paragraph vector, the model simply treats the title as a special word and generates the representation of title, which can be used as representation for the document.
+
+\subsection{Learning to Rank}
+Learning to rank can be defined as learning a function H over set of queries (q1, q2, ..., qm), set of documents (d1, d2,...., dn) with labels R, which can be binary or real valued depending upon the task. In our case R is the set ${0,1}$ which represents relevant or non-relevant. The aim of h then is to rank relevant document higher than irrelevant documents with respect to the query. Formally, h can be defined as (Ref LTR MSR) :
+
+$$ h(w, \psi(q, d)) \rightarrow R $$ 
+where $\psi$ is a function which gives a combined representation of query and document. Learning to rank can be broadly divided into 3 categories:
+
+\subsubsection{Pointwise Approach} 
+It takes triplets (q, D, R) as input and trains a classification/regression model depending on type of R
+
+\subsubsection{Pairwise Approach}
+This model takes (q, D) pairs as input and ranks correct pair higher than incorrect pair (generated by random sampling). 
+
+\subsubsection{Listwise Approach}
+It treats a query with its list of candidates as single learning instance, thus captures considerably more information about the ground truth ordering
+
+\section{Experiments}
+\subsection{Our Approach}
+We use pointiwse approach, since its easier to train and requires less number of data points than pairwise and listwise approaches. (Ref SIGIR LTR paper).
+
+For each paper $d_p$ and its ACM categories $l_p$, we find the Wikipedia page with title matching the category $d_^+w$ (positive sample). For each paper $d_p$ we also sample a negative category and its corresponding Wikipedia article $d_^-W$. We define a function g which representation of the document by embedding it using word2vec or paragraph2vec in a d-dimensional space.
+
+We follow Bag-of-Words approach for finding representation of the document when using word2vec for representation of the document (average of the word vectors). For Out oF Vocabulary words we generate a uniformly randomly sampled vector and replace the embedding of the work with this vector. For paragraph2vec, we find its representation by using inference method described in the paper (Ref. Mikolov). We define $\psi$ in our case as:
+
+$$ \psi (d_p, d_w) = [R(d_p) ; R(d_W)] $$
+Where R(d) is the representation of the document in d-dimensional space. For function h, we select Logistic Regression with implementation available in sklearn.
+
+\subsection{Dataset}
+We use citation network dataset (Ref.) which contains 247543 papers with each article categorised into one of 24 ACM categories. Since for our method we are assuming that labels of the paper have some Wikipedia article with same title, we select only those categories which have some Wikipedia page with same title. We use Wikipedia dump of Oct. 24 (Footnote). We found out that out of 24 ACM categories, 23 categories have a corresponding Wikipedia page. 
+
+That leaves us with 236565 articles. We randomly split these articles into 80\% training instances and 20\% testing instances. So training data contains 189290 papers and testing data contains 47275 papers.
+
+
+\begin{center}
+\begin{tabular}{ |c|c|c|c| } 
+\hline
+Method & Accuracy \\
+\hline
+Tf-Idf + SVM Baseline & 58.8281\% \\ 
+\hline
+CNN baseline & 69.07827\% \\ 
+\hline
+Our model & {\bf 71.2512\%} \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{Results and Discussion:}
+For benchmarking we select recent state-of-the-art in word embedding based text classification method (REf. CNN for text clas). Since this baseline uses CNN which requires fixed length input sequence, we convert the papers into fixed length documents by padding them till average sequence length in training corpus. We use the code made available by authors (footnote) and ran it on our dataset with the best settings reported. 
+
+We present the result of our method on Table 1. For evaluating performance we use accuracy as measure. It is clear that our method outperforms the baseline in accuracy by {\bf 2.17 \%}. Since abstracts are short texts, adding external information to the model clearly gives us an advantage over current methods. Advantage over simple Bag-of-Words model is clear since their h
+
+
+
+
+\begin{thebibliography}{4}
+
+\bibitem{proceeding1} Czajkowski, K., Fitzgerald, S., Foster, I., Kesselman, C.: Grid
+Information Services for Distributed Resource Sharing. In: 10th IEEE
+International Symposium on High Performance Distributed Computing, pp.
+181--184. IEEE Press, New York (2001)
+
+@inproceedings{joachims1998text,
+  title={Text categorization with support vector machines: Learning with many relevant features},
+  author={Joachims, Thorsten},
+  booktitle={European conference on machine learning},
+  pages={137--142},
+  year={1998},
+  organization={Springer}
+}
+
+
+\bibitem{proceeding2} Foster, I., Kesselman, C., Nick, J., Tuecke, S.: The Physiology of the
+Grid: an Open Grid Services Architecture for Distributed Systems
+Integration. Technical report, Global Grid Forum (2002)
+
+\bibitem{url} National Center for Biotechnology Information, \url{http://www.ncbi.nlm.nih.gov}
+
+
+
+\end{thebibliography}
+
+
+
+%\section{Checklist of Items to be Sent to Volume Editors}
+%Here is a checklist of everything the volume editor requires from you:
+
+
+%\begin{itemize}
+%\settowidth{\leftmargin}{{\Large$\square$}}\advance\leftmargin\labelsep
+%\itemsep8pt\relax
+%\renewcommand\labelitemi{{\lower1.5pt\hbox{\Large$\square$}}}
+
+%\item The final \LaTeX{} source files
+%\item A final PDF file
+%\item A copyright form, signed by one author on behalf of all of the
+%authors of the paper.
+%\item A readme giving the name and email address of the
+%corresponding author.
+%\end{itemize}
+\end{document}
